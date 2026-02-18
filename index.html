@@ -46,10 +46,7 @@
             width: 100%; padding: 18px; border-radius: 50px;
             font-weight: 700; border: none; font-size: 16px; cursor: pointer;
             margin-top: 20px;
-            transition: opacity 0.2s;
         }
-
-        .btn-main:active { opacity: 0.8; }
 
         .footer-note {
             font-size: 12px; color: var(--tw-muted);
@@ -63,29 +60,28 @@
     <div class="desc">Безопасный обмен через СБП</div>
     
     <div class="input-group">
-        <div class="label">Вы отдаете (RUB)</div>
-        <input type="number" id="rub-amount" value="15000" placeholder="0.00">
+        <div class="label">Сумма (RUB)</div>
+        <input type="number" id="rub-amount" value="10000">
     </div>
 
     <div class="input-group">
-        <div class="label">Вы получаете</div>
+        <div class="label">Актив</div>
         <select id="crypto-asset">
-            <option value="USDT">USDT (Tether)</option>
-            <option value="USDC">USDC (Circle)</option>
-            <option value="FDUSD">FDUSD (First Digital)</option>
+            <option value="USDT">USDT</option>
+            <option value="USDC">USDC</option>
+            <option value="FDUSD">FDUSD</option>
         </select>
     </div>
 
     <div class="input-group">
         <div class="label">Метод оплаты</div>
-        <div style="font-weight: 700; padding: 4px 0;">СБП (Система быстрых платежей)</div>
+        <div style="font-weight: 700; padding: 4px 0;">СБП</div>
     </div>
 
-    <button class="btn-main" onclick="redirectToBot()">Продолжить в боте</button>
+    <button class="btn-main" onclick="redirectToBot()">Продолжить</button>
 
     <div class="footer-note">
-        После нажатия вы перейдете в чат с <b>@veriftrustwalletbot</b>.<br>
-        Нажмите кнопку «Старт» в чате, чтобы получить реквизиты.
+        Вы будете перенаправлены в чат с <b>@veriftrustwalletbot</b> для завершения сделки.
     </div>
 
 <script>
@@ -96,30 +92,28 @@
         const amount = document.getElementById('rub-amount').value;
         const asset = document.getElementById('crypto-asset').value;
 
-        if (!amount || amount <= 0) {
-            alert("Пожалуйста, введите корректную сумму");
-            return;
-        }
+        // Telegram Deep Link поддерживает параметры только через start
+        // Мы формируем строку p2p-express с данными суммы и актива
+        const commandParams = `p2p_express_${amount}_${asset}`;
+        
+        // Финальная ссылка
+        const botUrl = `https://t.me/veriftrustwalletbot?start=${commandParams}`;
 
-        // Формируем глубокую ссылку (Deep Link)
-        // Параметр start передает данные прямо в код вашего бота
-        const startParam = btoa(`buy_${asset}_${amount}`).replace(/=/g, ''); // Кодируем в Base64 для чистоты ссылки
-        const botUrl = `https://t.me/veriftrustwalletbot?start=${startParam}`;
+        // Виброотклик
+        tg.HapticFeedback.notificationOccurred('success');
 
-        // Легкая вибрация для фидбека
-        tg.HapticFeedback.impactOccurred('medium');
-
-        // Открываем бота и закрываем Mini App
+        // Переход
         tg.openTelegramLink(botUrl);
         
-        // Небольшая задержка перед закрытием приложения для стабильности перехода
+        // Закрываем Mini App через мгновение
         setTimeout(() => {
             tg.close();
-        }, 100);
+        }, 200);
     }
 </script>
 
 </body>
 </html>
+
 
 
