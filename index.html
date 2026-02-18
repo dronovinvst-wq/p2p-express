@@ -24,8 +24,6 @@
         }
 
         h2 { font-size: 26px; font-weight: 800; color: var(--tw-blue); margin-top: 0; }
-        .desc { font-size: 14px; color: var(--tw-muted); margin-bottom: 25px; }
-
         .input-group {
             background: var(--tw-card);
             border-radius: 16px;
@@ -33,31 +31,14 @@
             margin-bottom: 12px;
             border: 1px solid var(--tw-border);
         }
-
         .label { font-size: 11px; color: var(--tw-muted); font-weight: 700; text-transform: uppercase; margin-bottom: 4px; }
-        
-        input, select {
-            background: transparent; border: none; color: var(--tw-text);
-            font-size: 18px; font-weight: 700; width: 100%; outline: none;
-        }
-
-        .btn-main {
-            background: var(--tw-blue); color: #fff;
-            width: 100%; padding: 18px; border-radius: 50px;
-            font-weight: 700; border: none; font-size: 16px; cursor: pointer;
-            margin-top: 20px;
-        }
-
-        .footer-note {
-            font-size: 12px; color: var(--tw-muted);
-            text-align: center; margin-top: 20px; line-height: 1.4;
-        }
+        input, select { background: transparent; border: none; color: var(--tw-text); font-size: 18px; font-weight: 700; width: 100%; outline: none; }
+        .btn-main { background: var(--tw-blue); color: #fff; width: 100%; padding: 18px; border-radius: 50px; font-weight: 700; border: none; font-size: 16px; cursor: pointer; margin-top: 20px; }
     </style>
 </head>
 <body>
 
     <h2>Купить крипто</h2>
-    <div class="desc">Безопасный обмен через СБП</div>
     
     <div class="input-group">
         <div class="label">Сумма (RUB)</div>
@@ -73,16 +54,7 @@
         </select>
     </div>
 
-    <div class="input-group">
-        <div class="label">Метод оплаты</div>
-        <div style="font-weight: 700; padding: 4px 0;">СБП</div>
-    </div>
-
     <button class="btn-main" onclick="redirectToBot()">Продолжить</button>
-
-    <div class="footer-note">
-        Вы будете перенаправлены в чат с <b>@veriftrustwalletbot</b> для завершения сделки.
-    </div>
 
 <script>
     const tg = window.Telegram.WebApp;
@@ -92,28 +64,21 @@
         const amount = document.getElementById('rub-amount').value;
         const asset = document.getElementById('crypto-asset').value;
 
-        // Telegram Deep Link поддерживает параметры только через start
-        // Мы формируем строку p2p-express с данными суммы и актива
-        const commandParams = `p2p_express_${amount}_${asset}`;
+        // В Botmother параметр после start попадет в переменную start_param
+        // Мы передаем данные через дефис, так как Botmother легко их распарсит
+        const commandParams = `p2p-express-${amount}-${asset}`;
         
-        // Финальная ссылка
         const botUrl = `https://t.me/veriftrustwalletbot?start=${commandParams}`;
 
-        // Виброотклик
         tg.HapticFeedback.notificationOccurred('success');
-
-        // Переход
         tg.openTelegramLink(botUrl);
         
-        // Закрываем Mini App через мгновение
-        setTimeout(() => {
-            tg.close();
-        }, 200);
+        setTimeout(() => { tg.close(); }, 200);
     }
 </script>
-
 </body>
 </html>
+
 
 
 
