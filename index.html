@@ -3,348 +3,123 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Trust P2P - SBP Only</title>
+    <title>Trust Wallet P2P</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root {
             --tw-blue: #0500ff;
             --tw-bg: #ffffff;
-            --tw-card-bg: #f6f7f9;
-            --tw-text-main: #1e2329;
-            --tw-text-muted: #717e8f;
-            --tw-success: #2ebd85;
-            --tw-error: #f6465d;
+            --tw-card: #f6f7f9;
+            --tw-text: #1e2329;
+            --tw-muted: #717e8f;
             --tw-border: #e1e4e8;
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background-color: #f0f2f5;
-            color: var(--tw-text-main);
-            margin: 0;
-            display: flex;
-            justify-content: center;
-            height: 100vh;
+            font-family: -apple-system, system-ui, sans-serif;
+            background-color: var(--tw-bg);
+            margin: 0; padding: 24px;
+            display: flex; flex-direction: column;
+            color: var(--tw-text);
         }
 
-        .container {
-            width: 100%;
-            max-width: 450px;
-            background: var(--tw-bg);
-            display: flex;
-            flex-direction: column;
-            padding: 24px;
-            box-sizing: border-box;
-            position: relative;
-        }
+        h2 { font-size: 26px; font-weight: 800; color: var(--tw-blue); margin-top: 0; }
+        .desc { font-size: 14px; color: var(--tw-muted); margin-bottom: 25px; }
 
-        .screen { display: none; flex-direction: column; height: 100%; }
-        .screen.active { display: flex; }
-
-        h2 { font-size: 24px; margin: 0 0 8px 0; color: var(--tw-blue); font-weight: 800; }
-        .subtitle { font-size: 14px; color: var(--tw-text-muted); margin-bottom: 30px; }
-
-        /* Поля */
         .input-group {
-            background: var(--tw-card-bg);
+            background: var(--tw-card);
             border-radius: 16px;
-            padding: 14px 18px;
-            margin-bottom: 16px;
+            padding: 12px 16px;
+            margin-bottom: 12px;
             border: 1px solid var(--tw-border);
         }
-        .label { font-size: 12px; color: var(--tw-text-muted); margin-bottom: 4px; font-weight: 600; }
+
+        .label { font-size: 11px; color: var(--tw-muted); font-weight: 700; text-transform: uppercase; margin-bottom: 4px; }
         
         input, select {
-            background: transparent; border: none; color: var(--tw-text-main);
+            background: transparent; border: none; color: var(--tw-text);
             font-size: 18px; font-weight: 700; width: 100%; outline: none;
-            appearance: none;
         }
 
-        /* Кнопки */
         .btn-main {
             background: var(--tw-blue); color: #fff;
             width: 100%; padding: 18px; border-radius: 50px;
-            font-weight: 700; border: none; font-size: 16px;
-            cursor: pointer; margin-top: 10px;
+            font-weight: 700; border: none; font-size: 16px; cursor: pointer;
+            margin-top: 20px;
+            transition: opacity 0.2s;
         }
 
-        .btn-cancel {
-            background: transparent; color: var(--tw-text-muted);
-            width: 100%; padding: 12px; border: none; font-size: 14px; cursor: pointer;
-        }
+        .btn-main:active { opacity: 0.8; }
 
-        /* Ордер */
-        .info-card {
-            background: var(--tw-card-bg);
-            border-radius: 20px;
-            padding: 20px;
-            margin: 15px 0;
-            border: 1px solid var(--tw-border);
+        .footer-note {
+            font-size: 12px; color: var(--tw-muted);
+            text-align: center; margin-top: 20px; line-height: 1.4;
         }
-
-        .copy-row {
-            display: flex; justify-content: space-between; align-items: center;
-            margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid var(--tw-border);
-        }
-        .copy-row:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
-
-        .copy-btn {
-            color: var(--tw-blue); font-size: 12px; font-weight: 700;
-            background: rgba(5,0,255,0.05); padding: 6px 12px; border-radius: 10px; cursor: pointer;
-        }
-
-        /* Загрузка */
-        .upload-zone {
-            border: 2px dashed var(--tw-blue); background: rgba(5,0,255,0.02);
-            border-radius: 20px; padding: 40px 20px; text-align: center; cursor: pointer;
-        }
-        #preview-img { width: 100%; max-height: 150px; object-fit: contain; display: none; margin-top: 10px; border-radius: 12px; }
-
-        /* Чат */
-        #chat-screen {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: var(--tw-bg); z-index: 2000; display: none; flex-direction: column;
-        }
-
-        .spinner {
-            width: 60px; height: 60px; border: 6px solid var(--tw-card-bg);
-            border-top-color: var(--tw-blue); border-radius: 50%;
-            animation: spin 1s linear infinite; margin: 30px auto;
-        }
-        @keyframes spin { to { transform: rotate(360deg); } }
-
-        #modal-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.5); z-index: 3000;
-            display: none; justify-content: center; align-items: center; padding: 24px;
-        }
-        .modal { background: #fff; padding: 30px; border-radius: 24px; text-align: center; }
-
-        .timer { color: var(--tw-error); font-weight: 800; font-size: 20px; }
     </style>
 </head>
 <body>
 
-<div class="container">
+    <h2>Купить крипто</h2>
+    <div class="desc">Безопасный обмен через СБП</div>
     
-    <div id="step-1" class="screen active">
-        <h2>P2P-express</h2>
-        <div class="subtitle">Быстрая покупка через СБП</div>
-        
-        <div class="input-group">
-            <div class="label">Вы тратите (RUB)</div>
-            <input type="number" id="rub-amount" value="10000" oninput="calculate()">
-        </div>
-
-        <div class="input-group">
-            <div class="label">Вы получаете</div>
-            <div style="display: flex; align-items: center;">
-                <input type="text" id="crypto-amount" readonly>
-                <select id="crypto-asset" style="width: auto; color: var(--tw-blue); cursor:pointer;" onchange="calculate()">
-                    <option value="USDT">USDT</option>
-                    <option value="USDC">USDC</option>
-                    <option value="FDUSD">FDUSD</option>
-                </select>
-            </div>
-        </div>
-
-        <div class="input-group">
-            <div class="label">Метод оплаты</div>
-            <div style="font-size: 18px; font-weight: 700; color: var(--tw-text-main);">СБП (По номеру телефона)</div>
-        </div>
-
-        <div style="font-size: 13px; color: var(--tw-text-muted); margin-bottom: 20px;">
-            Курс (ЦБ + 3₽): <b style="color:var(--tw-text-main)">1 <span id="asset-name">USDT</span> ≈ <span id="final-rate">...</span> RUB</b>
-        </div>
-
-        <button class="btn-main" onclick="goToStep(2)">Продолжить</button>
+    <div class="input-group">
+        <div class="label">Вы отдаете (RUB)</div>
+        <input type="number" id="rub-amount" value="15000" placeholder="0.00">
     </div>
 
-    <div id="step-2" class="screen">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-            <h2 style="color:var(--tw-text-main); margin:0;">Оплата СБП</h2>
-            <div class="timer" id="timer-2">15:00</div>
-        </div>
-
-        <div class="info-card">
-            <div class="copy-row">
-                <div>
-                    <div class="label">Сумма к переводу</div>
-                    <div id="pay-sum" style="font-size: 22px; font-weight: 800;"></div>
-                </div>
-                <div class="copy-btn" onclick="copy('pay-sum', this)">Копировать</div>
-            </div>
-            <div class="copy-row">
-                <div>
-                    <div class="label">Номер телефона (СБП)</div>
-                    <div id="pay-phone" style="font-size: 18px; font-weight: 700;">Временно недоступно</div>
-                </div>
-                <div class="copy-btn" onclick="copy('pay-phone', this)">Копировать</div>
-            </div>
-            <div class="copy-row">
-                <div>
-                    <div class="label">Банк-получатель</div>
-                    <div style="font-weight: 600;">Временно недoступно</div>
-                </div>
-            </div>
-            <div class="copy-row">
-                <div>
-                    <div class="label">ФИО Получателя</div>
-                    <div id="pay-fio" style="font-weight: 600;">Временно недоступно</div>
-                </div>
-                <div class="copy-btn" onclick="copy('pay-fio', this)">Копировать</div>
-            </div>
-        </div>
-
-        <button class="btn-main" onclick="goToStep(3)">Я перевел(а) через СБП</button>
-        <button class="btn-cancel" onclick="askCancel()">Отменить ордер</button>
+    <div class="input-group">
+        <div class="label">Вы получаете</div>
+        <select id="crypto-asset">
+            <option value="USDT">USDT (Tether)</option>
+            <option value="USDC">USDC (Circle)</option>
+            <option value="FDUSD">FDUSD (First Digital)</option>
+        </select>
     </div>
 
-    <div id="step-3" class="screen">
-        <h2>Подтверждение</h2>
-        <div class="subtitle">Загрузите скриншот чека из вашего банковского приложения.</div>
-
-        <div class="upload-zone" onclick="document.getElementById('file-input').click()">
-            <div id="upload-placeholder">
-                <div style="font-size: 40px;">📤</div>
-                <div style="margin-top: 10px; font-weight: 700; color: var(--tw-blue);">Прикрепить чек</div>
-            </div>
-            <img id="preview-img">
-            <input type="file" id="file-input" style="display: none;" accept="image/*" onchange="handleFile(this)">
-        </div>
-
-        <button id="confirm-upload-btn" class="btn-main" style="opacity: 0.4; pointer-events: none;" onclick="goToStep(4)">Отправить подтверждение</button>
-        <button class="btn-cancel" onclick="askCancel()">Отменить ордер</button>
+    <div class="input-group">
+        <div class="label">Метод оплаты</div>
+        <div style="font-weight: 700; padding: 4px 0;">СБП (Система быстрых платежей)</div>
     </div>
 
-    <div id="step-4" class="screen">
-        <div style="text-align: center; margin-top: 60px;">
-            <div class="spinner"></div>
-            <h2 style="color:var(--tw-text-main)">Обработка...</h2>
-            <p style="color: var(--tw-text-muted); font-size: 15px; line-height: 1.5;">
-                Мерчант проверяет поступление средств по СБП. <br>Это обычно занимает 2-5 минут.
-            </p>
-        </div>
-        <button class="btn-main" style="background: var(--tw-card-bg); color: var(--tw-blue); margin-top: 50px;" onclick="openChat()">Поддержка</button>
-        <button class="btn-cancel" onclick="askCancel()">Отменить ордер</button>
-    </div>
+    <button class="btn-main" onclick="redirectToBot()">Продолжить в боте</button>
 
-    <div id="chat-screen">
-        <div style="padding: 20px; border-bottom: 1px solid var(--tw-border); display: flex; align-items: center; justify-content: space-between;">
-            <b style="font-size: 18px;">Поддержка Trust</b>
-            <span style="cursor: pointer; font-weight: 800; color: var(--tw-blue);" onclick="closeChat()">Закрыть</span>
-        </div>
-        <div id="messages" style="flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px;">
-            <div style="background: var(--tw-card-bg); padding: 12px; border-radius: 15px; font-size: 14px; align-self: flex-start; max-width: 80%;">
-                Здравствуйте! Мы получили ваше уведомление об оплате. Мерчант проверяет СБП.
-            </div>
-        </div>
-        <div style="padding: 15px 20px; border-top: 1px solid var(--tw-border); display: flex; gap: 10px;">
-            <input type="text" id="chat-input" placeholder="Введите сообщение..." style="font-size: 15px;">
-            <button onclick="sendMsg()" style="background: none; border: none; color: var(--tw-blue); font-weight: 800;">Отправить</button>
-        </div>
+    <div class="footer-note">
+        После нажатия вы перейдете в чат с <b>@veriftrustwalletbot</b>.<br>
+        Нажмите кнопку «Старт» в чате, чтобы получить реквизиты.
     </div>
-
-    <div id="modal-overlay">
-        <div class="modal">
-            <h3 style="margin: 0 0 12px 0; font-size: 20px;">Отменить ордер?</h3>
-            <p style="font-size: 14px; color: var(--tw-text-muted); margin-bottom: 25px;">
-                Если вы уже совершили перевод по СБП, не отменяйте ордер, иначе монеты не будут зачислены.
-            </p>
-            <button class="btn-main" style="background: var(--tw-error);" onclick="location.reload()">Да, отменить</button>
-            <button class="btn-cancel" onclick="closeModal()">Назад к ордеру</button>
-        </div>
-    </div>
-
-</div>
 
 <script>
-    let currentRate = 95.00;
-    const margin = 3.00;
+    const tg = window.Telegram.WebApp;
+    tg.expand();
 
-    async function init() {
-        try {
-            const res = await fetch('https://open.er-api.com/v6/latest/USD');
-            const data = await res.json();
-            currentRate = data.rates.RUB;
-        } catch(e) {}
-        calculate();
-    }
-
-    function calculate() {
-        const rub = document.getElementById('rub-amount').value;
+    function redirectToBot() {
+        const amount = document.getElementById('rub-amount').value;
         const asset = document.getElementById('crypto-asset').value;
-        const totalRate = currentRate + margin;
-        document.getElementById('asset-name').innerText = asset;
-        document.getElementById('final-rate').innerText = totalRate.toFixed(2);
-        document.getElementById('crypto-amount').value = (rub / totalRate).toFixed(4);
-    }
 
-    function goToStep(step) {
-        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-        document.getElementById('step-' + step).classList.add('active');
-        if(step === 2) {
-            document.getElementById('pay-sum').innerText = document.getElementById('rub-amount').value + ' RUB';
-            startTimer('timer-2');
+        if (!amount || amount <= 0) {
+            alert("Пожалуйста, введите корректную сумму");
+            return;
         }
+
+        // Формируем глубокую ссылку (Deep Link)
+        // Параметр start передает данные прямо в код вашего бота
+        const startParam = btoa(`buy_${asset}_${amount}`).replace(/=/g, ''); // Кодируем в Base64 для чистоты ссылки
+        const botUrl = `https://t.me/veriftrustwalletbot?start=${startParam}`;
+
+        // Легкая вибрация для фидбека
+        tg.HapticFeedback.impactOccurred('medium');
+
+        // Открываем бота и закрываем Mini App
+        tg.openTelegramLink(botUrl);
+        
+        // Небольшая задержка перед закрытием приложения для стабильности перехода
+        setTimeout(() => {
+            tg.close();
+        }, 100);
     }
-
-    function copy(id, btn) {
-        const text = document.getElementById(id).innerText.replace(' RUB', '');
-        const el = document.createElement('textarea');
-        el.value = text; document.body.appendChild(el);
-        el.select(); document.execCommand('copy');
-        document.body.removeChild(el);
-        const old = btn.innerText;
-        btn.innerText = 'Успешно';
-        setTimeout(() => { btn.innerText = old; }, 1200);
-    }
-
-    function handleFile(input) {
-        if (input.files && input.files[0]) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                document.getElementById('upload-placeholder').style.display = 'none';
-                document.getElementById('preview-img').src = e.target.result;
-                document.getElementById('preview-img').style.display = 'block';
-                const btn = document.getElementById('confirm-upload-btn');
-                btn.style.opacity = '1'; btn.style.pointerEvents = 'auto';
-            };
-            reader.readAsDataURL(input.files[0]);
-        }
-    }
-
-    function askCancel() { document.getElementById('modal-overlay').style.display = 'flex'; }
-    function closeModal() { document.getElementById('modal-overlay').style.display = 'none'; }
-    
-    function openChat() { document.getElementById('chat-screen').style.display = 'flex'; }
-    function closeChat() { document.getElementById('chat-screen').style.display = 'none'; }
-
-    function sendMsg() {
-        const val = document.getElementById('chat-input').value;
-        if(!val) return;
-        const m = document.createElement('div');
-        m.style.cssText = "background:var(--tw-blue); color:#fff; padding:12px; border-radius:15px; font-size:14px; align-self:flex-end; max-width:80%;";
-        m.innerText = val;
-        document.getElementById('messages').appendChild(m);
-        document.getElementById('chat-input').value = '';
-    }
-
-    function startTimer(id) {
-        let t = 900;
-        const el = document.getElementById(id);
-        const inv = setInterval(() => {
-            let m = Math.floor(t / 60); let s = t % 60;
-            el.innerText = `${m}:${s < 10 ? '0' : ''}${s}`;
-            if(t <= 0) clearInterval(inv);
-            t--;
-        }, 1000);
-    }
-
-    init();
 </script>
 
 </body>
-
 </html>
 
 
